@@ -1,0 +1,23 @@
+# Local environment
+.env
+
+# Runtime data store (legacy JSON fallback - contains real user records)
+data/*.json
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build output
+/dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

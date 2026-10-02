@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio Hub Dashboard</title>
+  <meta name="description" content="Professional executive dashboard for Portfolio Hub with performance metrics, revenue insights, and team activity." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand-block">
+          <img src="assets/images/logo.png" alt="Portfolio Hub" class="brand-mark" />
+          <div>
+            <p class="brand-name">Portfolio Hub</p>
+            <p class="brand-label">Executive dashboard</p>
+          </div>
+          <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar">&times;</button>
+        </div>
+
+        <nav class="side-nav" aria-label="Sidebar navigation">
+          <a href="#overview" class="nav-item active" data-section="overview"><span class="nav-icon">&#9633;</span>Overview</a>
+          <a href="#analytics" class="nav-item" data-section="analytics"><span class="nav-icon">&#9672;</span>Analytics</a>
+          <a href="#clients" class="nav-item" data-section="clients"><span class="nav-icon">&#9678;</span>Clients</a>
+          <a href="#pipeline" class="nav-item" data-section="pipeline"><span class="nav-icon">&#9993;</span>Pipeline</a>
+          <a href="#reports" class="nav-item" data-section="reports"><span class="nav-icon">&#9733;</span>Reports</a>
+        </nav>
+
+        <div class="nav-divider"></div>
+        <p class="nav-section-label">Quick links</p>
+        <nav class="side-nav" aria-label="Quick links">
+          <a href="index.php" class="nav-item"><span class="nav-icon">&#8962;</span>Home</a>
+          <a href="team.php" class="nav-item"><span class="nav-icon">&#9734;</span>Our Team</a>
+          <a href="login.php" class="nav-item"><span class="nav-icon">&#9654;</span>Sign in</a>
+          <a href="register.php" class="nav-item"><span class="nav-icon">&#10010;</span>Register</a>
+          <a href="logout.php" class="nav-item nav-logout"><span class="nav-icon">&#10140;</span>Sign out</a>
+        </nav>
+
+        <div class="mini-card">
+          <div class="mini-card-header">
+            <div class="mini-card-avatar">D</div>
+            <div>
+              <p class="mini-card-name">Daniel</p>
+              <p class="mini-card-role">Executive</p>
+            </div>
+          </div>
+          <div class="mini-card-status">
+            <span class="status-dot"></span>
+            <span>Online</span>
+          </div>
+          <div class="progress-track" aria-label="Quarter progress">
+            <span style="width: 72%"></span>
+          </div>
+          <small style="color:rgba(255,255,255,0.5);font-size:0.72rem;display:block;text-align:center;margin-top:4px;">72% of Q4 target</small>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <p class="eyebrow">Performance dashboard</p>
+            <h1>Welcome back, Daniel</h1>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="search-box">
+            <span class="search-icon">&#128269;</span>
+            <input type="text" placeholder="Search..." id="globalSearch" />
+          </div>
+          <div class="date-badge" id="todayDate">Loading...</div>
+          <button type="button" class="primary-btn">Export</button>
+        </div>
+      </header>
+
+      <!-- Overview Section -->
+      <section class="dashboard-section active" id="section-overview">
+        <section class="hero-card">
+          <div class="hero-content">
+            <span class="status-pill">Live</span>
+            <h2>Business performance is trending above forecast this quarter.</h2>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <span class="hero-stat-value">$128,340</span>
+              <span class="hero-stat-label">Total Revenue</span>
+            </div>
+            <div class="hero-stat">
+              <span class="hero-stat-value">248</span>
+              <span class="hero-stat-label">Active Clients</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-grid">
+          <article class="stat-card accent">
+            <div class="stat-icon-wrap accent"><span class="stat-icon">&#128176;</span></div>
+            <div class="stat-body">
+              <div class="stat-head"><span>Total revenue</span><span class="trend up">+12.4%</span></div>
+              <strong>$128,340</strong>
+              <small>Compared to last month</small>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-icon-wrap green"><span class="stat-icon">&#128100;</span></div>
+            <div class="stat-body">
+              <div class="stat-head"><span>Active clients</span><span class="trend up">+8.1%</span></div>
+              <strong>248</strong>
+              <small>18 new this month</small>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-icon-wrap blue"><span class="stat-icon">&#128179;</span></div>
+            <div class="stat-body">
+              <div class="stat-head"><span>Pending invoices</span><span class="trend down">-3.2%</span></div>
+              <strong>$24,760</strong>
+              <small>12 awaiting approval</small>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-icon-wrap purple"><span class="stat-icon">&#128200;</span></div>
+            <div class="stat-body">
+              <div class="stat-head"><span>Team performance</span><span class="trend up">+6.7%</span></div>
+              <strong>94.6%</strong>
+              <small>Productivity index</small>
+            </div>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <div><p class="section-kicker">Overview</p><h3>Revenue trend</h3></div>
+              <span class="filter-chip">This year</span>
+            </div>
+            <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+            <div class="summary-row">
+              <div><span>Net growth</span><strong>+29.4%</strong></div>
+              <div><span>Forecast</span><strong>$141.8K</strong></div>
+              <div><span>Conversion</span><strong>68.9%</strong></div>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <div><p class="section-kicker">Focus</p><h3>Priority tasks</h3></div>
+            </div>
+            <ul class="activity-list">
+              <li>
+                <span class="dot green"></span>
+                <div><strong>Finalize Q3 growth review</strong><small>Completed today</small></div>
+              </li>
+              <li>
+                <span class="dot yellow"></span>
+                <div><strong>Review onboarding pipeline</strong><small>Due in 2 hours</small></div>
+              </li>
+              <li>
+                <span class="dot blue"></span>
+                <div><strong>Prepare investor summary</strong><small>Needs approval</small></div>
+              </li>
+              <li>
+                <span class="dot blue"></span>
+                <div><strong>Update financial projections</strong><small>In progress</small></div>
+              </li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="bottom-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <div><p class="section-kicker">Pipeline</p><h3>Sales pipeline</h3></div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Client</th><th>Stage</th><th>Value</th><th>Progress</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><div class="user-cell"><div class="user-avatar" style="background:#4f6ef7">N</div>Northstar Labs</div></td>
+                    <td><span class="service-tag">Proposal</span></td>
+                    <td><strong>$18.4K</strong></td>
+                    <td><div class="progress-track" style="width:120px;margin:0"><span style="width:64%"></span></div></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="user-avatar" style="background:#25c18d">H</div>Harbor Fintech</div></td>
+                    <td><span class="service-tag">Negotiation</span></td>
+                    <td><strong>$28.1K</strong></td>
+                    <td><div class="progress-track" style="width:120px;margin:0"><span style="width:82%"></span></div></td>
+                  </tr>
+                  <tr>
+                    <td><div class="user-cell"><div class="user-avatar" style="background:#f5ad3d">B</div>BluePeak Retail</div></td>
+                    <td><span class="service-tag">Discovery</span></td>
+                    <td><strong>$12.7K</strong></td>
+                    <td><div class="progress-track" style="width:120px;margin:0"><span style="width:48%"></span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-header">
+              <div><p class="section-kicker">Activity</p><h3>Recent updates</h3></div>
+            </div>
+            <ul class="activity-list">
+              <li>
+                <span class="dot blue"></span>
+                <div><strong>New proposal approved</strong><small>12 minutes ago</small></div>
+              </li>
+              <li>
+                <span class="dot green"></span>
+                <div><strong>Client onboarding completed</strong><small>1 hour ago</small></div>
+              </li>
+              <li>
+                <span class="dot yellow"></span>
+                <div><strong>Quarterly financial close in progress</strong><small>3 hours ago</small></div>
+              </li>
+            </ul>
+          </article>
+        </section>
+      </section>
+
+      <!-- Analytics Section -->
+      <section class="dashboard-section" id="section-analytics">
+        <div class="section-header"><div><p class="section-kicker">Insights</p><h2>Analytics Overview</h2></div></div>
+        <section class="content-grid">
+          <article class="panel">
+            <div class="panel-header"><div><p class="section-kicker">Performance</p><h3>Revenue breakdown</h3></div></div>
+            <div class="chart-container"><canvas id="analyticsRevenueChart"></canvas></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header"><div><p class="section-kicker">Distribution</p><h3>Service mix</h3></div></div>
+            <div class="chart-container chart-container-sm"><canvas id="analyticsServiceChart"></canvas></div>
+          </article>
+        </section>
+      </section>
+
+      <!-- Clients Section -->
+      <section class="dashboard-section" id="section-clients">
+        <div class="section-header"><div><p class="section-kicker">Relationships</p><h2>Client Directory</h2></div></div>
+        <article class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Client</th><th>Industry</th><th>Revenue</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><div class="user-cell"><div class="user-avatar" style="background:#4f6ef7">N</div>Northstar Labs</div></td><td>Technology</td><td><strong>$18.4K</strong></td><td><span class="role-badge customer">Active</span></td></tr>
+                <tr><td>2</td><td><div class="user-cell"><div class="user-avatar" style="background:#25c18d">H</div>Harbor Fintech</div></td><td>Finance</td><td><strong>$28.1K</strong></td><td><span class="role-badge customer">Active</span></td></tr>
+                <tr><td>3</td><td><div class="user-cell"><div class="user-avatar" style="background:#f5ad3d">B</div>BluePeak Retail</div></td><td>Retail</td><td><strong>$12.7K</strong></td><td><span class="role-badge admin">Pending</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <!-- Pipeline Section -->
+      <section class="dashboard-section" id="section-pipeline">
+        <div class="section-header"><div><p class="section-kicker">Sales</p><h2>Pipeline Overview</h2></div></div>
+        <section class="stats-grid stats-grid-3">
+          <article class="stat-card accent"><div class="stat-body"><div class="stat-head"><span>Active deals</span></div><strong>12</strong><small>In pipeline</small></div></article>
+          <article class="stat-card"><div class="stat-body"><div class="stat-head"><span>Total value</span></div><strong>$59.2K</strong><small>Potential revenue</small></div></article>
+          <article class="stat-card"><div class="stat-body"><div class="stat-head"><span>Win rate</span></div><strong>68%</strong><small>Average close rate</small></div></article>
+        </section>
+      </section>
+
+      <!-- Reports Section -->
+      <section class="dashboard-section" id="section-reports">
+        <div class="section-header"><div><p class="section-kicker">Reporting</p><h2>Reports &amp; Exports</h2></div></div>
+        <article class="panel">
+          <div class="activity-list">
+            <li><span class="dot blue"></span><div><strong>Q3 Financial Summary</strong><small>Generated on Oct 1, 2026</small></div></li>
+            <li><span class="dot green"></span><div><strong>Client Activity Report</strong><small>Generated on Sep 28, 2026</small></div></li>
+            <li><span class="dot yellow"></span><div><strong>Revenue Forecast 2027</strong><small>Draft - needs review</small></div></li>
+          </div>
+        </article>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script>
+    window.__DASHBOARD_DATA__ = {
+      monthLabels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+      monthData: [8,12,10,15,18,22,20,28,25,32,29,35],
+      inquiryLabels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'],
+      inquiryData: [3,5,4,8,6,10,9,12],
+      serviceLabels: ['Business Advisory','Financial Modeling','Tax Services','Accounting','IT Support','Project Management'],
+      serviceData: [15,12,10,8,6,4]
+    };
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>

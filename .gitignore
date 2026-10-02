@@ -16,6 +16,9 @@ data/*.json
 *.log
 npm-debug.log*
 
+# AUCA Student Portal - leftover dev script (dumps student/lecturer records)
+debug_reg.php
+
 # Editor / OS
 .vscode/
 .idea/

@@ -1,48 +1,103 @@
 <?php
-require_once __DIR__ . '/auth.php';
-redirect_if_logged_in();
+require_once __DIR__ . '/includes/session.php';
+require_once __DIR__ . '/includes/db.php';
 
-$error = '';
-$role = 'customer';
+if (isLoggedIn()) {
+    header('Location: dashboard.php');
+    exit;
+}
+
+$errors = [];
+$old = [
+    'first_name' => '', 'last_name' => '', 'reg_number' => '',
+    'email' => '', 'username' => '', 'department_id' => '', 'year_of_study' => '1'
+];
+
+// Departments for the dropdown
+$deptResult = mysqli_query($conn, 'SELECT department_id, department_name FROM departments ORDER BY department_name');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $fullName = trim($_POST['full_name'] ?? '');
-    $email = strtolower(trim($_POST['email'] ?? ''));
-    $phone = trim($_POST['phone'] ?? '');
-    $location = trim($_POST['location'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-    $role = $_POST['role'] ?? 'customer';
 
-    if (!in_array($role, ['customer', 'admin'])) {
-        $role = 'customer';
-    }
-
-    if ($fullName === '' || $email === '' || $phone === '' || $location === '' || $password === '' || $confirmPassword === '') {
-        $error = 'Please complete all fields.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters long.';
-    } elseif ($password !== $confirmPassword) {
-        $error = 'Passwords do not match.';
+    if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Invalid form submission. Please try again.';
     } else {
-        $existingUser = find_user_by_email($email);
+        foreach ($old as $key => $default) {
+            $old[$key] = trim($_POST[$key] ?? $default);
+        }
+        $password        = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
 
-        if ($existingUser) {
-            $error = 'This email is already registered.';
-        } else {
-            create_user($fullName, $email, $password, $role, $phone, $location);
-            $newUser = find_user_by_email($email);
+        // ---------- Validation ----------
+        if ($old['first_name'] === '' || $old['last_name'] === '') {
+            $errors[] = 'First and last name are required.';
+        }
+        if (!filter_var($old['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Please enter a valid email address.';
+        }
+        if (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $old['username'])) {
+            $errors[] = 'Username must be 3-30 characters (letters, numbers, underscore only).';
+        }
+        if ($old['reg_number'] === '') {
+            $errors[] = 'Registration number is required.';
+        }
+        if (strlen($password) < 8) {
+            $errors[] = 'Password must be at least 8 characters.';
+        }
+        if ($password !== $confirmPassword) {
+            $errors[] = 'Passwords do not match.';
+        }
 
-            $_SESSION['user'] = $newUser;
-
-            if ($role === 'admin') {
-                header('Location: admin-dashboard.php');
-            } else {
-                header('Location: dashboard.php');
+        // ---------- Uniqueness checks ----------
+        if (empty($errors)) {
+            $stmt = mysqli_prepare($conn, 'SELECT user_id FROM users WHERE username = ? OR email = ?');
+            mysqli_stmt_bind_param($stmt, 'ss', $old['username'], $old['email']);
+            mysqli_stmt_execute($stmt);
+            if (mysqli_stmt_get_result($stmt)->num_rows > 0) {
+                $errors[] = 'That username or email is already registered.';
             }
-            exit;
+            mysqli_stmt_close($stmt);
+
+            $stmt2 = mysqli_prepare($conn, 'SELECT student_id FROM students WHERE reg_number = ?');
+            mysqli_stmt_bind_param($stmt2, 's', $old['reg_number']);
+            mysqli_stmt_execute($stmt2);
+            if (mysqli_stmt_get_result($stmt2)->num_rows > 0) {
+                $errors[] = 'That registration number is already in use.';
+            }
+            mysqli_stmt_close($stmt2);
+        }
+
+        // ---------- Insert ----------
+        if (empty($errors)) {
+            mysqli_begin_transaction($conn);
+            try {
+                $hash = password_hash($password, PASSWORD_BCRYPT);
+
+                $uStmt = mysqli_prepare($conn,
+                    'INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, "student", "active")'
+                );
+                mysqli_stmt_bind_param($uStmt, 'sss', $old['username'], $old['email'], $hash);
+                mysqli_stmt_execute($uStmt);
+                $userId = mysqli_insert_id($conn);
+                mysqli_stmt_close($uStmt);
+
+                $deptId = $old['department_id'] !== '' ? (int)$old['department_id'] : null;
+                $year   = (int)$old['year_of_study'];
+
+                $sStmt = mysqli_prepare($conn,
+                    'INSERT INTO students (user_id, reg_number, first_name, last_name, department_id, year_of_study, enrollment_date)
+                     VALUES (?, ?, ?, ?, ?, ?, CURDATE())'
+                );
+                mysqli_stmt_bind_param($sStmt, 'isssii', $userId, $old['reg_number'], $old['first_name'], $old['last_name'], $deptId, $year);
+                mysqli_stmt_execute($sStmt);
+                mysqli_stmt_close($sStmt);
+
+                mysqli_commit($conn);
+                header('Location: index.php?registered=1');
+                exit;
+            } catch (Exception $e) {
+                mysqli_rollback($conn);
+                $errors[] = 'Registration failed. Please try again.';
+            }
         }
     }
 }
@@ -50,93 +105,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register | Portfolio Hub</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/auth.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account | AUCA Student Portal</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <div class="auth-shell">
-    <div class="auth-card">
-      <div class="auth-header">
-        <img src="assets/images/logo.png" alt="Portfolio Hub" class="logo" />
-        <div>
-          <p class="eyebrow">Register</p>
-          <h1>Create your account</h1>
+<body class="auth-body">
+
+<div class="auth-wrapper">
+    <div class="auth-card auth-card-wide">
+        <div class="auth-logo">
+            <div class="auth-logo-circle">AUCA</div>
+            <h1>Create Student Account</h1>
         </div>
-      </div>
 
-      <?php if ($error !== ''): ?>
-        <div class="message error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
-      <?php endif; ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-error">
+                <?php foreach ($errors as $err): ?><p><?= e($err) ?></p><?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
-      <form method="POST" class="auth-form">
-        <label>
-          Full name
-          <input type="text" name="full_name" placeholder="Your full name" value="<?= htmlspecialchars($_POST['full_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required />
-        </label>
+        <form method="POST" action="register.php" class="auth-form" novalidate>
+            <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
 
-        <label>
-          Email address
-          <input type="email" name="email" placeholder="name@example.com" value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required />
-        </label>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" required value="<?= e($old['first_name']) ?>">
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" required value="<?= e($old['last_name']) ?>">
+                </div>
+            </div>
 
-        <label>
-          Phone number
-          <input type="tel" name="phone" placeholder="+250 7XX XXX XXX" value="<?= htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required />
-        </label>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label for="reg_number">Registration Number</label>
+                    <input type="text" id="reg_number" name="reg_number" required value="<?= e($old['reg_number']) ?>" placeholder="e.g. 2026/SENG/0142">
+                </div>
+                <div class="form-group">
+                    <label for="department_id">Department</label>
+                    <select id="department_id" name="department_id">
+                        <option value="">-- Select Department --</option>
+                        <?php while ($d = mysqli_fetch_assoc($deptResult)): ?>
+                            <option value="<?= (int)$d['department_id'] ?>" <?= ((string)$d['department_id'] === $old['department_id']) ? 'selected' : '' ?>>
+                                <?= e($d['department_name']) ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+            </div>
 
-        <label>
-          Current location
-          <input type="text" name="location" placeholder="City, Country" value="<?= htmlspecialchars($_POST['location'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required />
-        </label>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required value="<?= e($old['username']) ?>">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required value="<?= e($old['email']) ?>">
+                </div>
+            </div>
 
-        <label>
-          Password
-          <input type="password" name="password" placeholder="Minimum 6 characters" required />
-        </label>
+            <div class="form-group">
+                <label for="year_of_study">Year of Study</label>
+                <select id="year_of_study" name="year_of_study">
+                    <?php for ($y = 1; $y <= 5; $y++): ?>
+                        <option value="<?= $y ?>" <?= ($old['year_of_study'] == $y) ? 'selected' : '' ?>>Year <?= $y ?></option>
+                    <?php endfor; ?>
+                </select>
+            </div>
 
-        <label>
-          Confirm password
-          <input type="password" name="confirm_password" placeholder="Re-enter password" required />
-        </label>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required minlength="8">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
+                </div>
+            </div>
 
-        <label>
-          Account type
-          <div class="role-selector">
-            <label class="role-option">
-              <input type="radio" name="role" value="customer" checked />
-              <div class="role-card">
-                <span class="role-card-icon">&#128100;</span>
-                <strong>Customer</strong>
-                <small>Access client portal &amp; services</small>
-              </div>
-            </label>
-            <label class="role-option">
-              <input type="radio" name="role" value="admin" <?= ($role ?? '') === 'admin' ? 'checked' : '' ?> />
-              <div class="role-card">
-                <span class="role-card-icon">&#9881;</span>
-                <strong>Admin</strong>
-                <small>Manage users &amp; system</small>
-              </div>
-            </label>
-          </div>
-        </label>
+            <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+        </form>
 
-        <button type="submit" class="primary-btn">Create account</button>
-      </form>
-
-      <p class="switch-link">
-        Already have an account?
-        <a href="login.php">Sign in</a>
-      </p>
-      <p class="switch-link secondary">
-        <a href="index.php">&#8592; Back to home</a> &nbsp;|&nbsp; <a href="team.php">Our Team</a>
-      </p>
+        <p class="auth-footer">Already have an account? <a href="index.php">Log in</a></p>
     </div>
-  </div>
+</div>
+
 </body>
 </html>

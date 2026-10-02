@@ -1,0 +1,15 @@
+-- Run this SQL in phpMyAdmin or MySQL terminal
+
+CREATE DATABASE IF NOT EXISTS registration_db;
+USE registration_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fullname VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    phone VARCHAR(30) DEFAULT NULL,
+    gender VARCHAR(20) DEFAULT NULL,
+    registered_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
